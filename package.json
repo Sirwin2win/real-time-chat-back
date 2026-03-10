@@ -4,7 +4,7 @@
   "description": "A real time chat application using MERN and socket io",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon app.js",
+    "start": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Sirwin",
