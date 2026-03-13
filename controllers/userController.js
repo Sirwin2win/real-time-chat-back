@@ -39,23 +39,76 @@ exports.createUser = async (req, res) => {
 
 
 // Login Logic
-exports.login = async(req,res)=>{
-    const {email,password} = req.body
-    try {
-        const isUser = await User.findOne({email})
-        let token = await jwt.sign({id:isUser._id},process.env.JWT_SECRET,{expiresIn:'1hr'}) // sign(payload, jwtSecret, expireyDate)
-        if(isUser && (await bcrypt.compare(password,isUser.password))){
-            res.status(201).json({
-                isUser,
-                token
-            })
-        }else{
-            res.status(404).json({success:false,message:"Invalid user credentials"})
-        }
-    } catch (error) {
-        res.send(error.message)
+exports.login = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
-}
+
+    const match = await bcrypt.compare(password, user.password);
+
+    if (!match) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const accessToken = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    const refreshToken = jwt.sign(
+      { id: user._id },
+      process.env.JWT_REFRESH_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      path: "/refresh",
+    });
+
+    res.json({
+      accessToken,
+      user
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+// refrsh token endpoint
+exports.refresh = (req, res) => {
+
+  const token = req.cookies.refreshToken;
+
+  if (!token) {
+    return res.status(401).json({ message: "No refresh token" });
+  }
+
+  jwt.verify(token, process.env.JWT_REFRESH_SECRET, (err, decoded) => {
+
+    if (err) {
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
+
+    const accessToken = jwt.sign(
+      { id: decoded.id },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    res.json({ accessToken });
+
+  });
+};
 
 
 // Get all users
@@ -124,3 +177,9 @@ exports.deleteUser = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// LogOut logic
+exports.logout = (req,res)=>{
+  res.clearCookie("refreshToken",{path:"/refresh"})
+  res.json({message:"Logged out"})
+}
