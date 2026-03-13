@@ -68,17 +68,24 @@ exports.login = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      path: "/refresh",
-    });
+   res.cookie("refreshToken", refreshToken, {
+  httpOnly: true,
+  secure: true,
+  sameSite: "strict",
+  path: "/refresh",
+  maxAge: 7 * 24 * 60 * 60 * 1000
+});
+
 
     res.json({
-      accessToken,
-      user
-    });
+  accessToken,
+  user: {
+    id: user._id,
+    username: user.username,
+    email: user.email
+  }
+});
+
 
   } catch (err) {
     res.status(500).json({ message: err.message });
