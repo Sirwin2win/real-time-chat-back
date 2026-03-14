@@ -10,7 +10,7 @@ const {corsOptions } = require('./config/cors')
 
 
 const app = express();
-// cors set up
+// cors setup 
 app.use(cors(corsOptions));
 app.options(/.*/, cors(corsOptions));
 
