@@ -5,18 +5,16 @@ const allowedOrigins = (process.env.CORS_ORIGINS || "")
 
 const corsOptions = {
   origin: (origin, callback) => {
+
     if (!origin) return callback(null, true);
 
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
 
-    return callback(new Error(`CORS blocked for origin: ${origin}`));
+    return callback(new Error("Not allowed by CORS"));
   },
-  credentials: true,
+  credentials: true
 };
 
-module.exports = {
-  allowedOrigins,
-  corsOptions,
-};
+module.exports = { corsOptions, allowedOrigins };
