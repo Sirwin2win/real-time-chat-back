@@ -1,5 +1,6 @@
-require("dotenv").config();
+const dotenv = require("dotenv").config();
 const http = require("http");
+const cors = require('cors');
 const connectDB = require("./config/db");
 const { connectRedis } = require("./config/redis");
 const app = require("./app");

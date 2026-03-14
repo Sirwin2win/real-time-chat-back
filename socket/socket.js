@@ -1,13 +1,19 @@
 const { Server } = require("socket.io");
 const { pubClient, subClient } = require("../config/redis");
+const { allowedOrigins } = require("../config/cors");
+
 
 let io;
 
 function initSocket(server) {
-  io = new Server(server, {
+ 
+
+
+    const io = new Server(server, {
     cors: {
-      origin: [process.env.FRONTEND_URL],
+      origin: allowedOrigins,
       methods: ["GET", "POST"],
+      credentials: true,
     },
   });
 

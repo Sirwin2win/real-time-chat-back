@@ -13,7 +13,10 @@ exports.sendMessage = async (req, res) => {
     const saved = await message.save();
 
     // Update lastMessage in conversation
-    await Conversation.findByIdAndUpdate(conversationId, { lastMessage: saved._id });
+await Conversation.findByIdAndUpdate(conversationId, {
+  lastMessage: saved._id,
+  updatedAt: new Date(),
+});
 
     res.status(201).json(saved);
   } catch (error) {
@@ -30,7 +33,6 @@ exports.getMessages = async (req, res) => {
     if (!conversationId) {
       return res.status(400).json({ message: "conversationId is required" });
     }
-
     const messages = await Message.find({ conversationId })
       .populate("sender", "username avatar _id")
       .sort({ createdAt: 1 })
