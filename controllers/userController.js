@@ -122,7 +122,19 @@ exports.refresh = (req, res) => {
 // Get all users
 exports.getUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-password");
+    // Only admin
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+
+    const users = await User.find()
+      .select("-password -__v")
+      .skip((page - 1) * limit)
+      .limit(limit);
+
     res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
