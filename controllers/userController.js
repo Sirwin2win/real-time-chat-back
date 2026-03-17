@@ -44,54 +44,57 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-
     const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+    if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
     const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).json({ message: "Invalid credentials" });
 
-    if (!match) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
-
+    // 1. Create access token (short-lived)
     const accessToken = jwt.sign(
-      { id: user._id },
+      { id: user._id, username: user.username, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: "15m" }
     );
 
+    // 2. Create refresh token (long-lived)
     const refreshToken = jwt.sign(
       { id: user._id },
       process.env.JWT_REFRESH_SECRET,
       { expiresIn: "7d" }
     );
 
-res.cookie("refreshToken", refreshToken, {
-  httpOnly: true,
-  secure: true,          // ✅ REQUIRED for cross-site cookies
-  sameSite: "none",      // ✅ REQUIRED for cross-site
-  path: "/",
-  maxAge: 7 * 24 * 60 * 60 * 1000
-});
+    // 3. Set both tokens as cookies
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // true in prod HTTPS
+      sameSite: "none",  // required for cross-origin
+      maxAge: 15 * 60 * 1000, // 15 minutes
+      path: "/"
+    });
 
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: "/"
+    });
 
-    res.json({
-  accessToken,
-  user: {
-    id: user._id,
-    username: user.username,
-    email: user.email
-  }
-});
-
+    res.status(200).json({
+      message: "Logged in",
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email
+      }
+    });
 
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
+
 // refrsh token endpoint
 exports.refresh = (req, res) => {
 
