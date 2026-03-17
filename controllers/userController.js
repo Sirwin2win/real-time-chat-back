@@ -69,11 +69,11 @@ exports.login = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-   res.cookie("refreshToken", refreshToken, {
+res.cookie("refreshToken", refreshToken, {
   httpOnly: true,
-  secure: true,
-  sameSite: "strict",
-  path: "/refresh",
+  secure: true,          // ✅ REQUIRED for cross-site cookies
+  sameSite: "none",      // ✅ REQUIRED for cross-site
+  path: "/",
   maxAge: 7 * 24 * 60 * 60 * 1000
 });
 
