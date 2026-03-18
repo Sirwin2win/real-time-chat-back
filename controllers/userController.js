@@ -202,7 +202,16 @@ exports.deleteUser = async (req, res) => {
 };
 
 // LogOut logic
-exports.logout = (req,res)=>{
-  res.clearCookie("refreshToken",{path:"/refresh"})
-  res.json({message:"Logged out"})
-}
+exports.logout = (req, res) => {
+  const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "none",   // MUST match what you used when setting
+    path: "/"
+  };
+
+  res.clearCookie("accessToken", cookieOptions);
+  res.clearCookie("refreshToken", cookieOptions);
+
+  res.status(200).json({ message: "Logged out successfully" });
+};
