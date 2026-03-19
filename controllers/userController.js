@@ -126,9 +126,9 @@ exports.refresh = (req, res) => {
 exports.getUsers = async (req, res) => {
   try {
     // Only admin
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ message: "Access denied" });
-    }
+    // if (req.user.role !== "admin") {
+    //   return res.status(403).json({ message: "Access denied" });
+    // }
 
     const page = parseInt(req.query.page) || 1;
     const limit = 10;
